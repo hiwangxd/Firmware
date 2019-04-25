@@ -40,14 +40,16 @@
 
 #pragma once
 
+#include <CollisionPrevention/CollisionPrevention.hpp>
 #include "FlightTaskManualAltitude.hpp"
 
 class FlightTaskManualPosition : public FlightTaskManualAltitude
 {
 public:
-	FlightTaskManualPosition() = default;
+	FlightTaskManualPosition();
 
 	virtual ~FlightTaskManualPosition() = default;
+	bool initializeSubscriptions(SubscriptionArray &subscription_array) override;
 	bool activate() override;
 	bool updateInitialize() override;
 
@@ -56,16 +58,17 @@ public:
 	 */
 	void setYawHandler(WeatherVane *yaw_handler) override { _weathervane_yaw_handler = yaw_handler; }
 
+
 protected:
 	void _updateXYlock(); /**< applies position lock based on stick and velocity */
 	void _updateSetpoints() override;
 	void _scaleSticks() override;
 
 	DEFINE_PARAMETERS_CUSTOM_PARENT(FlightTaskManualAltitude,
-					(ParamFloat<px4::params::MPC_VEL_MANUAL>) MPC_VEL_MANUAL,
-					(ParamFloat<px4::params::MPC_ACC_HOR_MAX>) MPC_ACC_HOR_MAX,
-					(ParamFloat<px4::params::MPC_HOLD_MAX_XY>) MPC_HOLD_MAX_XY,
-					(ParamFloat<px4::params::MPC_ACC_HOR_ESTM>) MPC_ACC_HOR_ESTM
+					(ParamFloat<px4::params::MPC_VEL_MANUAL>) _param_mpc_vel_manual,
+					(ParamFloat<px4::params::MPC_ACC_HOR_MAX>) _param_mpc_acc_hor_max,
+					(ParamFloat<px4::params::MPC_HOLD_MAX_XY>) _param_mpc_hold_max_xy,
+					(ParamFloat<px4::params::MPC_ACC_HOR_ESTM>) _param_mpc_acc_hor_estm
 				       )
 private:
 	float _velocity_scale{0.0f}; //scales the stick input to velocity
@@ -74,4 +77,5 @@ private:
 	WeatherVane *_weathervane_yaw_handler =
 		nullptr;	/**< external weathervane library, used to implement a yaw control law that turns the vehicle nose into the wind */
 
+	CollisionPrevention _collision_prevention;	/**< collision avoidance setpoint amendment */
 };
